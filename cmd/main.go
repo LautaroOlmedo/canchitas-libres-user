@@ -13,6 +13,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// repository layer
 	sliceRepository := storage.NewSliceStorage(config)
 
 	// application layer (services layer)
