@@ -6,9 +6,9 @@ import (
 )
 
 type StorageRepository interface {
-	GetAll() error
+	GetAll() ([]Field, error)
 	// GetByID
-	// Add()
+	Add(ctx context.Context, field Field) error
 	Delete(ctx context.Context, id string) error
 	// Update
 }
