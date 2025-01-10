@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strings"
 )
 
 type Service interface {
 	GetAll() ([]domain.Field, error)
-	// GetByID
+	GetByID(id int) (domain.Field, error)
 	Add(field domain.Field) error
 	Delete(id string) error
 	// Update
@@ -26,17 +28,29 @@ func NewHandler(service Service) *Handler {
 	}
 }
 
-func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+var (
+	getAllRe = regexp.MustCompile(`^\/[\/]*$`)
+	getOneRe = regexp.MustCompile(`^\/(\d+)$`)
+)
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
-	case r.Method == http.MethodGet:
-		handler.GetAllFields(w, r)
+	case r.Method == http.MethodGet && getAllRe.MatchString(r.URL.Path):
+		w.Header().Set("Content-Type", "application/json")
+		h.GetAllFields(w, r)
+		return
+	case r.Method == http.MethodGet && getOneRe.MatchString(r.URL.Path):
+		w.Header().Set("Content-Type", "application/json")
+		h.GetFieldByID(w, r)
 		return
 	case r.Method == http.MethodPost:
-
-		handler.CreateField(w, r)
+		w.Header().Set("Content-Type", "application/json")
+		h.CreateField(w, r)
 		return
 	default:
-		http.NotFound(w, r)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Method not allowed"))
 		return
 	}
 }
@@ -61,6 +75,10 @@ func (handler *Handler) GetAllFields(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) GetFieldByID(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
+	id := strings.TrimPrefix(r.URL.Path, "/")
+	fmt.Println(id)
+
 	w.Write([]byte("Hello World"))
 }
 

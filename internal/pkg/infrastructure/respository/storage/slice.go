@@ -16,6 +16,10 @@ func (s *Slice) Add(ctx context.Context, field domain.Field) error {
 	return nil
 }
 
+func (s *Slice) GetByID(id int) (domain.Field, error) {
+	return s.SliceArr[id], nil
+}
+
 func (s *Slice) Delete(ctx context.Context, id string) error {
 	return nil
 }
