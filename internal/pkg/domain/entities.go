@@ -5,3 +5,10 @@ type Field struct {
 	Name   string `json:"name"`
 	Number int    `json:"number"`
 }
+
+func NewField(name string, number int) Field {
+	return Field{
+		Name:   name,
+		Number: number,
+	}
+}

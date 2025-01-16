@@ -2,6 +2,8 @@ package web
 
 import (
 	"canchitas-libres-field/internal/pkg/domain"
+	"canchitas-libres-field/internal/pkg/infrastructure/web/dto"
+	"canchitas-libres-field/internal/pkg/infrastructure/web/mapper"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,7 +15,7 @@ import (
 type Service interface {
 	GetAll() ([]domain.Field, error)
 	GetByID(id int) (domain.Field, error)
-	Add(field domain.Field) error
+	Add(input domain.FieldCreateInput) error
 	Delete(id string) error
 	// Update
 }
@@ -85,23 +87,29 @@ func (handler *Handler) GetFieldByID(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) CreateField(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	field := domain.Field{}
+	fieldDTO := dto.FieldDTO{}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
-	err = json.Unmarshal(body, &field)
+	err = json.Unmarshal(body, &fieldDTO)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
-	err = handler.Service.Add(field)
+	input := mapper.FieldCreateInput(fieldDTO)
+
+	err = handler.Service.Add(input)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("internal server error: field cannot be added"))
 		fmt.Println(err)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
