@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	GetAll() ([]domain.Field, error)
-	// GetByID
+	GetByID(id string) (domain.Field, error)
 	Add(field domain.Field) error
 	Delete(id string) error
 	// Update
@@ -29,8 +29,14 @@ func NewHandler(service Service) *Handler {
 func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodGet:
-		handler.GetAllFields(w, r)
-		return
+        id := r.URL.Query().Get("id")
+        if id == "" {  
+            handler.GetAllFields(w, r)
+            return
+        }
+        
+        handler.GetFieldByID(w, r)
+        return
 	case r.Method == http.MethodPost:
 
 		handler.CreateField(w, r)
@@ -95,5 +101,17 @@ func (handler *Handler) UpdateField(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) DeleteField(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World"))
+	id := r.URL.Query().Get("id")
+	field, err := handler.Service.GetByID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	handler.Service.Delete(field.FieldID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+
+	w.Write([]byte("Field deleted"))
 }

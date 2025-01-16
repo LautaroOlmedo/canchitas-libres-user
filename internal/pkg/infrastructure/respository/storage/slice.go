@@ -17,5 +17,25 @@ func (s *Slice) Add(ctx context.Context, field domain.Field) error {
 }
 
 func (s *Slice) Delete(ctx context.Context, id string) error {
+	
+	for i := range s.SliceArr {
+		
+		if  s.SliceArr[i].FieldID == id {
+			s.SliceArr = append(s.SliceArr[:i], s.SliceArr[i+1:]...)
+			return nil
+		}
+	}
+	
+	
 	return nil
+}
+
+func (s *Slice) GetByID(ctx context.Context, id string) (domain.Field , error) {
+	for i , _ := range s.SliceArr{
+		if s.SliceArr[i].FieldID == id {
+			return s.SliceArr[i], nil
+		}
+	}
+	return domain.Field{} , nil 
+	
 }
