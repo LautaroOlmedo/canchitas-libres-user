@@ -1,10 +1,12 @@
 package main
 
 import (
-	"canchitas-libres-field/internal/configuration"
-	"canchitas-libres-field/internal/pkg/domain"
-	"canchitas-libres-field/internal/pkg/respository/storage"
-	"canchitas-libres-field/internal/pkg/web"
+	"canchitas-libres-user/internal/configuration"
+	database2 "canchitas-libres-user/internal/database"
+	domain "canchitas-libres-user/internal/pkg/domain/user"
+	"canchitas-libres-user/internal/pkg/infrastructure/respository/storage"
+	"canchitas-libres-user/internal/pkg/infrastructure/web"
+	"context"
 	"fmt"
 )
 
@@ -14,11 +16,18 @@ func main() {
 		panic(err)
 	}
 
+	//database connection
+	database, err := database2.NewDBConnection(context.Background(), config)
+	if err != nil {
+		panic(err)
+	}
+
 	// repository layer
-	sliceRepository := storage.NewSliceStorage(config)
+	//sliceRepository := storage.NewSliceStorage(config)
+	postgresStorage := storage.NewPostgresStorage(config, database)
 
 	// application layer (services layer)
-	service := domain.NewService(config, sliceRepository)
+	service := domain.NewService(config, postgresStorage)
 
 	// infrastructure layer
 	handler := web.NewHandler(service)
