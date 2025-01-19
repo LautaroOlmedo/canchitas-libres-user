@@ -1,7 +1,7 @@
 package web
 
 import (
-	"canchitas-libres-field/internal/configuration"
+	"canchitas-libres-user/internal/configuration"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,7 +21,7 @@ func NewServer(configuration *configuration.Configuration, handler *Handler) (*S
 
 func (s *Server) Start() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/field", s.handler.ServeHTTP)
+	mux.HandleFunc("/user/", s.handler.ServeHTTP)
 	fmt.Printf("Server listening on %s%s\n", s.config.SERVER.DOMAIN, s.config.SERVER.SERVER_PORT)
 	err := http.ListenAndServe(s.config.SERVER.SERVER_PORT, mux)
 	if err != nil {
