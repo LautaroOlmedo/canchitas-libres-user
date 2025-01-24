@@ -11,8 +11,16 @@ type Server struct {
 	SERVER_PORT string `yaml:"SERVER_PORT"`
 }
 
+type Database struct {
+	DB_HOST     string
+	DB_PORT     string
+	DB_USERNAME string
+	DB_PASSWORD string
+	DB_NAME     string
+}
 type Configuration struct {
-	SERVER Server `yaml:"SERVER"`
+	SERVER   Server   `yaml:"SERVER"`
+	DATABASE Database `yaml:"DATABASE"`
 }
 
 func Load(file string) (*Configuration, error) {
@@ -24,6 +32,13 @@ func Load(file string) (*Configuration, error) {
 		SERVER: Server{
 			DOMAIN:      os.Getenv("SERVER_DOMAIN"),
 			SERVER_PORT: os.Getenv("SERVER_PORT"),
+		},
+		DATABASE: Database{
+			DB_HOST:     os.Getenv("DATABASE_HOST"),
+			DB_PORT:     os.Getenv("DATABASE_PORT"),
+			DB_USERNAME: os.Getenv("DATABASE_USERNAME"),
+			DB_PASSWORD: os.Getenv("DATABASE_PASSWORD"),
+			DB_NAME:     os.Getenv("DATABASE_NAME"),
 		},
 	}, nil
 }

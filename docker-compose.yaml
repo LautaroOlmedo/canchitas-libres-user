@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+  user_pg:
+    image: postgres:17.2
+    container_name: user_pg
+    restart: always
+    environment:
+      POSTGRES_DB: userDB
+      POSTGRES_USER: uda
+      POSTGRES_PASSWORD: uda123
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
