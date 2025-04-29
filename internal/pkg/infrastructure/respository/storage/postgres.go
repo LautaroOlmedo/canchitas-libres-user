@@ -5,7 +5,6 @@ import (
 	domain "canchitas-libres-user/internal/pkg/domain/user"
 	"context"
 	"fmt"
-	//"time"
 )
 
 const (
@@ -14,26 +13,27 @@ const (
         VALUES ($1, $2, $3, $4)
 		RETURNING       id;`
 	queryInsertUser = `
-        INSERT INTO users (id, email, password, active, role)
-        VALUES ($1, $2, $3, $4, $5);`
+        INSERT INTO users (id, email, password, active, role, phone)
+        VALUES ($1, $2, $3, $4, $5, $6);`
 	querySelectAllUsers = `
     SELECT 
-    u.id AS user_id,
-    u.email AS email,
-    u.password AS password,
-    u.active AS active,
-    u.role AS role,
-    p.id AS id,
-    p.firstname AS firstname,
-    p.lastname AS lastname,
-    p.dni AS dni,
-    p.birthdate AS birthdate
-FROM 
-    users u
-JOIN 
-    persons p
-ON 
-    u.id = p.id;`
+		u.id AS user_id,
+		u.email AS email,
+		u.password AS password,
+		u.active AS active,
+		u.role AS role,
+		u.phone AS phone,
+		p.id AS id,
+		p.firstname AS firstname,
+		p.lastname AS lastname,
+		p.dni AS dni,
+		p.birthdate AS birthdate
+	FROM 
+		users u
+	JOIN 
+		persons p
+	ON 
+		u.id = p.id;`
 	querySelectUserByID = `
 	SELECT 
 		p.id AS id, 
@@ -45,27 +45,24 @@ ON
 		u.email, 
 		u.password, 
 		u.active, 
-		u.role
+		u.role,
+		u.phone
 	FROM persons p
 	JOIN users u ON p.id = u.id
 	WHERE u.id = $1;
 `
-	queryDeleteUser   = `DELETE FROM users WHERE id = $1;`
-	queryDeletePerson = `DELETE FROM person WHERE id = $1;`
+	queryDeleteUser      = `DELETE FROM users WHERE id = $1;`
+	queryDeletePerson    = `DELETE FROM persons WHERE id = $1;`
+	queryUpdateFirstname = `UPDATE persons SET firstname = $1 WHERE id = $2`
+	queryUpdateLastname  = `UPDATE persons SET lastname = $1 WHERE id = $2`
+	queryUpdateDni       = `UPDATE persons SET dni = $1 WHERE id = $2`
+	queryUpdateBirthdate = `UPDATE persons SET birthdate = $1 WHERE id = $2`
+	queryUpdateEmail     = `UPDATE users SET email = $1 WHERE id = $2`
+	queryUpdatePassword  = `UPDATE users SET password = $1 WHERE id = $2`
+	queryUpdateActive    = `UPDATE users SET active = $1 WHERE id = $2`
+	queryUpdateRole      = `UPDATE users SET role = $1 WHERE id = $2`
+	queryUpdatePhone     = `UPDATE users SET phone = $1 WHERE id = $2`
 )
-
-// type UserAndPerson struct {
-// 	ID        int       `db:"id"`
-// 	FirstName string    `db:"firstname"`
-// 	LastName  string    `db:"lastname"`
-// 	DNI       int       `db:"dni"`
-// 	BirthDate time.Time `db:"birthdate"`
-// 	Id        int       `db:"user_id"`
-// 	Email     string    `db:"email"`
-// 	Password  string    `db:"password"`
-// 	Active    bool      `db:"active"`
-// 	Role      string    `db:"role"`
-// }
 
 type UserAndPerson struct {
 	//Si lo declaro de esta manera no funciona:
@@ -86,20 +83,6 @@ func (p *Postgres) GetAll() ([]domain.User, error) {
 	}
 
 	for _, up := range u_p {
-		// user := domain.User{
-		// 	Id:       up.Id,
-		// 	Email:    up.Email,
-		// 	Password: up.Password,
-		// 	Active:   up.Active,
-		// 	Role:     up.Role,
-		// 	Person: &domain2.Person{
-		// 		ID:        up.ID,
-		// 		FirstName: up.FirstName,
-		// 		LastName:  up.LastName,
-		// 		DNI:       up.DNI,
-		// 		BirthDate: up.BirthDate,
-		// 	},
-		// }
 		user := up.User
 		user.Person = &up.Person
 		users = append(users, user)
@@ -123,7 +106,7 @@ func (p *Postgres) Add(ctx context.Context, user domain.User) error {
 	}
 	user.Id = personID
 	// Ensure user.Id is the same as the inserted person ID
-	_, err = tx.ExecContext(ctx, queryInsertUser, user.Id, user.Email, user.Password, user.Active, user.Role)
+	_, err = tx.ExecContext(ctx, queryInsertUser, user.Id, user.Email, user.Password, user.Active, user.Role, user.Phone)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to insert user: %w", err)
@@ -147,23 +130,6 @@ func (p *Postgres) GetByID(id int) (domain.User, error) {
 	}
 	user = u_p.User
 	user.Person = &u_p.Person
-
-	//user.Person.FirstName = u_p.FirstName
-	// user := domain.User{
-	// 	// Person: &domain2.Person{
-	// 	// 	ID:        u_p.ID,
-	// 	// 	FirstName: u_p.FirstName,
-	// 	// 	LastName:  u_p.LastName,
-	// 	// 	DNI:       u_p.DNI,
-	// 	// 	BirthDate: u_p.BirthDate,
-	// 	// },
-	// 	Person:   &u_p.Person,
-	// 	Id:       u_p.Id,
-	// 	Email:    u_p.Email,
-	// 	Password: u_p.Password,
-	// 	Active:   u_p.Active,
-	// 	Role:     u_p.Role,
-	// }
 
 	return user, nil
 }
@@ -189,5 +155,76 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+	return nil
+}
+
+func (p *Postgres) Update(ctx context.Context, id int, userU domain.User) error {
+	tx, err := p.Begin()
+	if err != nil {
+		return err
+	}
+
+	if userU.Person.FirstName != "" {
+		_, err = tx.ExecContext(ctx, queryUpdateFirstname, userU.Person.FirstName, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user firstname: %w", err)
+		}
+	}
+	if userU.Person.LastName != "" {
+		_, err = tx.ExecContext(ctx, queryUpdateLastname, userU.Person.LastName, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user lastname: %w", err)
+		}
+	}
+	if userU.Person.DNI != 0 {
+		_, err = tx.ExecContext(ctx, queryUpdateDni, userU.Person.DNI, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user dni: %w", err)
+		}
+	}
+	if userU.Person.BirthDate.Format("2006-01-02") != "0001-01-01" {
+		_, err = tx.ExecContext(ctx, queryUpdateBirthdate, userU.Person.BirthDate, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user birthdate: %w", err)
+		}
+	}
+	if userU.Email != "" {
+		_, err = tx.ExecContext(ctx, queryUpdateEmail, userU.Email, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user email: %w", err)
+		}
+	}
+	if userU.Password != "" {
+		_, err = tx.ExecContext(ctx, queryUpdatePassword, userU.Password, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user password: %w", err)
+		}
+	}
+	if userU.Role != "" {
+		_, err = tx.ExecContext(ctx, queryUpdateRole, userU.Role, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user role: %w", err)
+		}
+	}
+	if userU.Phone != "" {
+		_, err = tx.ExecContext(ctx, queryUpdatePhone, userU.Phone, id)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user phone")
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

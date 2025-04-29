@@ -20,6 +20,7 @@ func Test_User(t *testing.T) {
 		password      string
 		active        bool
 		role          string
+		phone         string
 		expectedError error
 	}
 
@@ -31,6 +32,7 @@ func Test_User(t *testing.T) {
 			password:      "gonzaloquito",
 			active:        true,
 			role:          "admin",
+			phone:         "2615555555",
 			expectedError: nil,
 		},
 		{
@@ -40,6 +42,7 @@ func Test_User(t *testing.T) {
 			password:      "gonzaloquito",
 			active:        true,
 			role:          "admin",
+			phone:         "2615555555",
 			expectedError: ErrMissingParameter,
 		},
 		{
@@ -49,6 +52,7 @@ func Test_User(t *testing.T) {
 			password:      "gonzaloquito",
 			active:        true,
 			role:          "admin",
+			phone:         "2615555555",
 			expectedError: ErrMissingParameter,
 		},
 		{
@@ -58,6 +62,7 @@ func Test_User(t *testing.T) {
 			password:      "",
 			active:        true,
 			role:          "admin",
+			phone:         "2615555555",
 			expectedError: ErrMissingParameter,
 		},
 		{
@@ -67,6 +72,7 @@ func Test_User(t *testing.T) {
 			password:      "gonzaloquito",
 			active:        true,
 			role:          "",
+			phone:         "2615555555",
 			expectedError: ErrMissingParameter,
 		},
 		{
@@ -76,6 +82,7 @@ func Test_User(t *testing.T) {
 			password:      "gonzaloquito",
 			active:        true,
 			role:          "adminnn",
+			phone:         "2615555555",
 			expectedError: ErrRoleInvalid,
 		},
 		{
@@ -85,6 +92,7 @@ func Test_User(t *testing.T) {
 			password:      "gonz",
 			active:        true,
 			role:          "admin",
+			phone:         "2615555555",
 			expectedError: ErrPasswordMinCharacters,
 		},
 	}
@@ -93,7 +101,7 @@ func Test_User(t *testing.T) {
 		test := usersTest[i]
 		t.Run(test.nombreTest, func(t *testing.T) {
 			t.Parallel()
-			testUser, err := NewUser(test.person.FirstName, test.person.LastName, test.person.DNI, test.person.BirthDate, test.email, test.password, test.role)
+			testUser, err := NewUser(test.person.FirstName, test.person.LastName, test.person.DNI, test.person.BirthDate, test.email, test.password, test.role, test.phone)
 			if !errors.Is(err, test.expectedError) {
 				fmt.Println("User testeado: ", testUser)
 				t.Fatalf("Yo esperaba el error: %v, y obtuve el error: %v", test.expectedError, err)

@@ -6,11 +6,11 @@ import (
 )
 
 type StorageRepository interface {
-	GetAll() ([]User, error) //Desde la base de datos no puede devolver un user porque el user no tiene una columna persona. Devuelvo otra struct creada en el caso de uso?
+	GetAll() ([]User, error)
 	GetByID(id int) (User, error)
 	Add(ctx context.Context, user User) error
 	Delete(ctx context.Context, id int) error
-	//Update(ctx context.Context, id string) error
+	Update(ctx context.Context, id int, userU User) error
 }
 
 type Service struct {

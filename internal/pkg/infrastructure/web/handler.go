@@ -16,9 +16,9 @@ import (
 type Service interface {
 	GetAll() ([]domain.User, error)
 	GetByID(id int) (domain.User, error)
-	Add(user domain.UserCreateInput) error
+	Add(user domain.User) error
 	Delete(id int) error
-	// Update
+	Update(id int, user domain.User) error
 }
 type Handler struct {
 	Service Service
@@ -53,6 +53,9 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodDelete:
 		handler.DeleteUser(w, r)
 		return
+	case r.Method == http.MethodPut:
+		handler.UpdateUser(w, r)
+		return
 	default:
 		http.NotFound(w, r)
 		return
@@ -65,17 +68,7 @@ func (handler *Handler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	usersDto := make([]dto.UserDtoResponse, len(users)) //Transformo el slice de users en uno de dtoUsers
-	for i := range users {
-		usersDto[i], err = mappers.ToDtoUser(users[i])
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-	}
-
-	usersJSON, jsonerr := json.Marshal(usersDto) //Lo transforma en codigo legible para json
+	usersJSON, jsonerr := json.Marshal(users) //Lo transforma en codigo legible para json
 	if jsonerr != nil {
 		return //retornar un error
 	}
@@ -111,13 +104,8 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userDto, err := mappers.ToDtoUser(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	userJson, errJson := json.Marshal(userDto)
+	//Respuesta
+	userJson, errJson := json.Marshal(user)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
@@ -131,7 +119,7 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userDto := dto.UserCreateDto{}
+	userDto := dto.UserDto{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -169,7 +157,61 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello World"))
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	parts := strings.Split(path, "/")
+	idString := parts[len(parts)-1]
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		fmt.Println("error al convertir el id en un int")
+		return
+	}
+
+	err = dto.ValidateInputId(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+
+	userDto := dto.UserDto{}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = json.Unmarshal(body, &userDto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = dto.ValidateUserCreateDto(userDto.FirstName, userDto.LastName, userDto.DNI, userDto.BirthDate, userDto.Email, userDto.Password, userDto.Role)
+	if err == dto.ErrInvalidTypeVariable {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	userU, err := mappers.ToDomainUser(userDto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = handler.Service.Update(id, userU)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("user was updated"))
 }
 
 func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {

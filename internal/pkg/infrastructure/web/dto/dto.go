@@ -11,7 +11,7 @@ var (
 	ErrInvalidTypeVariable = errors.New("invalid type of variable")
 )
 
-type UserCreateDto struct {
+type UserDto struct {
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	DNI       int    `json:"dni"`
@@ -19,17 +19,18 @@ type UserCreateDto struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	Role      string `json:"role"`
+	Phone     string `json:"phone"`
 }
 
-type UserDtoResponse struct {
-	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
-	DNI       int    `json:"dni"`
-	BirthDate string `json:"birthdate"`
-	Id        int    `json:"id"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-} // En este struct deberia ir solo lo que queremos mostrar a la hora de mostrar un user.
+// type UserDtoResponse struct {
+// 	FirstName string `json:"firstname"`
+// 	LastName  string `json:"lastname"`
+// 	DNI       int    `json:"dni"`
+// 	BirthDate string `json:"birthdate"`
+// 	Id        int    `json:"id"`
+// 	Email     string `json:"email"`
+// 	Role      string `json:"role"`
+// } // En este struct deberia ir solo lo que queremos mostrar a la hora de mostrar un user. No lo implemente.
 
 func ValidateUserCreateDto(firstName string, lastName string, DNI int, birthDate string, email string, password string, role string) error {
 
@@ -37,11 +38,14 @@ func ValidateUserCreateDto(firstName string, lastName string, DNI int, birthDate
 		strings.TrimSpace(firstName) == "" || strings.TrimSpace(lastName) == "" || strings.TrimSpace(birthDate) == "" || DNI == 0 {
 		return ErrMissingParameter
 	}
-	if reflect.TypeOf(email) != reflect.TypeOf("") || reflect.TypeOf(password) != reflect.TypeOf("") || reflect.TypeOf(role) != reflect.TypeOf("") {
+	if reflect.TypeOf(email) != reflect.TypeOf("") || reflect.TypeOf(password) != reflect.TypeOf("") || reflect.TypeOf(role) != reflect.TypeOf("") ||
+		reflect.TypeOf(firstName) != reflect.TypeOf("") || reflect.TypeOf(lastName) != reflect.TypeOf("") || reflect.TypeOf(DNI) != reflect.TypeOf(1) ||
+		reflect.TypeOf(birthDate) != reflect.TypeOf("") {
 		return ErrInvalidTypeVariable
 	}
 	return nil
-} // Las validadciones estan mal, si mandas " " con un espacio no lo toma como error. Con .TrimSpace() elimino los espacios en blanco iniciales y finales.
+} //Con .TrimSpace() elimino los espacios en blanco iniciales y finales.
+// No hice ninguna validacion con el telefono porq no es obligatorio ponerlo. Pero algo se deberia hacer.
 
 func ValidateInputId(id int) error {
 

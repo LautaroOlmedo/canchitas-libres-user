@@ -2,26 +2,49 @@ package domain
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 )
 
-type UserCreateInput struct {
-	FirstName string    `json:"firstname"`
-	LastName  string    `json:"lastname"`
-	DNI       int       `json:"dni"`
-	BirthDate time.Time `json:"birthdate"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password"`
-	Active    bool      `json:"active"`
-	Role      string    `json:"role"`
-}
+// type UserInput struct {
+// 	FirstName string    `json:"firstname"`
+// 	LastName  string    `json:"lastname"`
+// 	DNI       int       `json:"dni"`
+// 	BirthDate time.Time `json:"birthdate"`
+// 	Email     string    `json:"email"`
+// 	Password  string    `json:"password"`
+// 	Role      string    `json:"role"`
+// } //Esta struct es necesaria? Creo que la hice para no crear un user sin validar todo, pero no hay problema en crearlo mientras no lo mandemos a la base de datos.
 
-func (s *Service) Add(userInput UserCreateInput) error {
-	userNew, err := NewUser(userInput.FirstName, userInput.LastName, userInput.DNI, userInput.BirthDate, userInput.Email, userInput.Password, userInput.Role)
-	if err != nil {
-		return err
+var (
+	ErrMissingParameter      = errors.New("missing parameter")
+	ErrRoleInvalid           = errors.New("role doesnt exist")
+	ErrPasswordMinCharacters = errors.New("password too short")
+	ErrMinAge                = errors.New("age not allow")
+)
+
+func (s *Service) Add(user User) error {
+
+	r := strings.ToLower(user.Role)
+	if r != "admin" && r != "user" {
+		return ErrRoleInvalid
 	}
-	return s.StorageRepository.Add(context.Background(), *userNew)
-}
 
-//Hacer las validaciones aca, no en la entidad
+	if len(user.Password) < 5 {
+		return ErrPasswordMinCharacters
+	}
+
+	today := time.Now()
+	userYears := today.Year() - user.Person.BirthDate.Year()
+	if today.Month() < user.Person.BirthDate.Month() || (today.Month() == user.Person.BirthDate.Month() && today.Day() < user.Person.BirthDate.Day()) {
+		userYears--
+	}
+	fmt.Println(userYears)
+	if userYears < 18 || userYears > 130 {
+		return ErrMinAge
+	}
+
+	return s.StorageRepository.Add(context.Background(), user)
+}

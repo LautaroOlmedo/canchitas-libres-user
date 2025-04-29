@@ -19,17 +19,6 @@ type Person struct {
 
 // patron Factory: Es una fabrica que rotorna el tipo de entidad
 func NewPerson(firstName string, lastName string, DNI int, birthDate time.Time) (*Person, error) {
-	if firstName == "" || lastName == "" {
-		return nil, ErrMissingParameter
-	}
-	if birthDate.IsZero() {
-		return nil, ErrMissingParameter
-	}
-
-	if DNI == 0 {
-		return nil, ErrMissingParameter
-	}
-
 	return &Person{
 		FirstName: firstName,
 		LastName:  lastName,
