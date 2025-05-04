@@ -22,6 +22,11 @@ type UserDto struct {
 	Phone     string `json:"phone"`
 }
 
+type LoginDto struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 // type UserDtoResponse struct {
 // 	FirstName string `json:"firstname"`
 // 	LastName  string `json:"lastname"`
@@ -53,6 +58,17 @@ func ValidateInputId(id int) error {
 		return ErrMissingParameter
 	}
 	if reflect.TypeOf(id) != reflect.TypeOf(1) {
+		return ErrInvalidTypeVariable
+	}
+	return nil
+}
+
+func ValidateLogin(email string, password string) error {
+	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" {
+		return ErrMissingParameter
+	}
+
+	if reflect.TypeOf(email) != reflect.TypeOf("") || reflect.TypeOf(password) != reflect.TypeOf("") {
 		return ErrInvalidTypeVariable
 	}
 	return nil

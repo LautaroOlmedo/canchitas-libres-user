@@ -15,7 +15,7 @@ type User struct {
 	Active   bool           `json:"active" db:"active"`
 	Role     string         `json:"role" db:"role"`
 	Phone    string         `json:"phone" db:"phone"`
-	//Phone    sql.NullString `json:"phone"` Esto para trabajar con string que puedan ser nulos.
+	//Phone    sql.NullString `json:"phone"` Esto para trabajar con string que puedan ser nulos. De momento hice que en la base de datos sea obligatorio el phone
 }
 
 var (

@@ -19,6 +19,7 @@ type Service interface {
 	Add(user domain.User) error
 	Delete(id int) error
 	Update(id int, user domain.User) error
+	Login(email string, password string) (string, error)
 }
 type Handler struct {
 	Service Service
@@ -33,13 +34,15 @@ func NewHandler(service Service) *Handler {
 var (
 	// getAllRe = regexp.MustCompile(`^\/[\/]*$`)
 	// getOneRe = regexp.MustCompile(`^\/(\d+)$`)
-	getAllRe = regexp.MustCompile(`^\/user\/?$`)
-	getOneRe = regexp.MustCompile(`^\/user\/(\d+)$`)
+	getAllRe  = regexp.MustCompile(`^\/user\/?$`)
+	getOneRe  = regexp.MustCompile(`^\/user\/(\d+)$`)
+	createRe  = regexp.MustCompile(`^\/user\/?$`)
+	loginPath = regexp.MustCompile(`^\/user\/login$`)
 )
 
 func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
-	case r.Method == http.MethodPost:
+	case r.Method == http.MethodPost && createRe.MatchString(r.URL.Path):
 		handler.CreateUser(w, r)
 		return
 	case r.Method == http.MethodGet && getAllRe.MatchString(r.URL.Path):
@@ -55,6 +58,9 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodPut:
 		handler.UpdateUser(w, r)
+		return
+	case r.Method == http.MethodPost && loginPath.MatchString(r.URL.Path):
+		handler.LoginUser(w, r)
 		return
 	default:
 		http.NotFound(w, r)
@@ -241,4 +247,45 @@ func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("user was eliminated"))
+}
+
+func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userLogin := dto.LoginDto{}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+	}
+
+	err = json.Unmarshal(body, &userLogin)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+	}
+
+	err = dto.ValidateLogin(userLogin.Email, userLogin.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	tokenLogin, err := handler.Service.Login(userLogin.Email, userLogin.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	tokenJson, errJson := json.Marshal(tokenLogin)
+	if errJson != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errJson.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(tokenJson)
 }
