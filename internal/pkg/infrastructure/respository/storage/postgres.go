@@ -98,7 +98,7 @@ func (p *Postgres) Add(ctx context.Context, user domain.User) error {
 		return err
 	}
 
-	var personID int
+	var personID string
 	err = tx.QueryRowContext(ctx, queryInsertPerson, user.Person.FirstName, user.Person.LastName, user.Person.DNI, user.Person.BirthDate).Scan(&personID)
 	if err != nil {
 		tx.Rollback()
@@ -120,13 +120,13 @@ func (p *Postgres) Add(ctx context.Context, user domain.User) error {
 	return nil
 }
 
-func (p *Postgres) GetByID(id int) (domain.User, error) {
+func (p *Postgres) GetByID(id string) (domain.User, error) {
 	var user domain.User
 	var u_p UserAndPerson
 
 	err := p.Get(&u_p, querySelectUserByID, id)
 	if err != nil {
-		return domain.User{}, fmt.Errorf("failed to get user by ID %d: %w", id, err)
+		return domain.User{}, fmt.Errorf("failed to get user by ID %s: %w", id, err)
 	}
 	user = u_p.User
 	user.Person = &u_p.Person
@@ -134,7 +134,7 @@ func (p *Postgres) GetByID(id int) (domain.User, error) {
 	return user, nil
 }
 
-func (p *Postgres) Delete(ctx context.Context, id int) error {
+func (p *Postgres) Delete(ctx context.Context, id string) error {
 	tx, err := p.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -158,7 +158,7 @@ func (p *Postgres) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (p *Postgres) Update(ctx context.Context, id int, userU domain.User) error {
+func (p *Postgres) Update(ctx context.Context, id string, userU domain.User) error {
 	tx, err := p.Begin()
 	if err != nil {
 		return err

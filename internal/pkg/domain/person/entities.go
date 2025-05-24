@@ -10,7 +10,7 @@ var (
 )
 
 type Person struct {
-	ID        int       `json:"person_id" db:"id"`
+	ID        string    `json:"person_id" db:"id"`
 	FirstName string    `json:"firstname" db:"firstname"`
 	LastName  string    `json:"lastname" db:"lastname"`
 	DNI       int       `json:"dni" db:"dni"`

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (s *Service) Update(id int, userU User) error {
+func (s *Service) Update(id string, userU User) error {
 	var errIDNotFound = errors.New("ID not found")
 
 	userU.Person.FirstName = strings.TrimSpace(userU.Person.FirstName)

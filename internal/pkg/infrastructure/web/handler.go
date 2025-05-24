@@ -2,6 +2,7 @@ package web
 
 import (
 	domain "canchitas-libres-user/internal/pkg/domain/user"
+	authservice "canchitas-libres-user/internal/pkg/infrastructure/authService"
 	"canchitas-libres-user/internal/pkg/infrastructure/web/dto"
 	"canchitas-libres-user/internal/pkg/infrastructure/web/mappers"
 	"encoding/json"
@@ -9,17 +10,17 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
 type Service interface {
 	GetAll() ([]domain.User, error)
-	GetByID(id int) (domain.User, error)
+	GetByID(id string) (domain.User, error)
 	Add(user domain.User) error
-	Delete(id int) error
-	Update(id int, user domain.User) error
-	Login(email string, password string) (string, error)
+	Delete(id string) error
+	Update(id string, user domain.User) error
+	Login(email string, password string) (domain.User, error)
+	GetByEmail(email string) (domain.User, error)
 }
 type Handler struct {
 	Service Service
@@ -32,12 +33,11 @@ func NewHandler(service Service) *Handler {
 }
 
 var (
-	// getAllRe = regexp.MustCompile(`^\/[\/]*$`)
-	// getOneRe = regexp.MustCompile(`^\/(\d+)$`)
 	getAllRe  = regexp.MustCompile(`^\/user\/?$`)
-	getOneRe  = regexp.MustCompile(`^\/user\/(\d+)$`)
+	getOneRe  = regexp.MustCompile(`^\/user\/([a-fA-F0-9-]{36})$`)
 	createRe  = regexp.MustCompile(`^\/user\/?$`)
 	loginPath = regexp.MustCompile(`^\/user\/login$`)
+	getByEm   = regexp.MustCompile(`^\/user\/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})$`)
 )
 
 func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +62,8 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case r.Method == http.MethodPost && loginPath.MatchString(r.URL.Path):
 		handler.LoginUser(w, r)
 		return
+	case r.Method == http.MethodGet && getByEm.MatchString(r.URL.Path):
+		handler.GetUserByEmail(w, r)
 	default:
 		http.NotFound(w, r)
 		return
@@ -90,14 +92,14 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	path := strings.TrimPrefix(r.URL.Path, "/") // Toma todo lo que este en el path despues del primer / --> user/:id
 	parts := strings.Split(path, "/")           // Arma un slice con los elementos utilizando / como separador --> ["user", "9858"]
-	idString := parts[len(parts)-1]             // Ultimo elemento del slice --> ultimo elemento del path
-	id, err := strconv.Atoi(idString)           // Convierto el string en un int
-	if err != nil {
-		fmt.Println("error al convertir el id en un int")
-		return
-	}
+	id := parts[len(parts)-1]                   // Ultimo elemento del slice --> ultimo elemento del path
+	// id, err := strconv.Atoi(idString)           // Convierto el string en un int
+	// if err != nil {
+	// 	fmt.Println("error al convertir el id en un int")
+	// 	return
+	// }
 
-	err = dto.ValidateInputId(id)
+	err := dto.ValidateInputId(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -105,7 +107,7 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	user, err := handler.Service.GetByID(id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -154,7 +156,7 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = handler.Service.Add(userDomain)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -165,14 +167,14 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
 	parts := strings.Split(path, "/")
-	idString := parts[len(parts)-1]
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		fmt.Println("error al convertir el id en un int")
-		return
-	}
+	id := parts[len(parts)-1]
+	// id, err := strconv.Atoi(idString)
+	// if err != nil {
+	// 	fmt.Println("error al convertir el id en un int")
+	// 	return
+	// }
 
-	err = dto.ValidateInputId(id)
+	err := dto.ValidateInputId(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -227,14 +229,14 @@ func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	path := strings.TrimPrefix(r.URL.Path, "/")
 	parts := strings.Split(path, "/")
-	idString := parts[len(parts)-1]
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		fmt.Println("error al convertir el id en un int")
-		return
-	}
+	id := parts[len(parts)-1]
+	// id, err := strconv.Atoi(idString)
+	// if err != nil {
+	// 	fmt.Println("error al convertir el id en un int")
+	// 	return
+	// }
 
-	err = dto.ValidateInputId(id)
+	err := dto.ValidateInputId(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println(err)
@@ -252,7 +254,7 @@ func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userLogin := dto.LoginDto{}
+	dtoLogin := dto.LoginDto{}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -260,32 +262,70 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	err = json.Unmarshal(body, &userLogin)
+	err = json.Unmarshal(body, &dtoLogin)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 	}
 
-	err = dto.ValidateLogin(userLogin.Email, userLogin.Password)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	tokenLogin, err := handler.Service.Login(userLogin.Email, userLogin.Password)
+	err = dto.ValidateLogin(dtoLogin.Email, dtoLogin.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	tokenJson, errJson := json.Marshal(tokenLogin)
+	userLogin, err := handler.Service.Login(dtoLogin.Email, dtoLogin.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	} // El caso de uso devuelve directamente el user y desde el handler me ocupo de llamar a la funcion que genera el token JWT.
+
+	userToken, errToken := authservice.TokenGenerator(userLogin.Id, userLogin.Role) //Directamente llamo a la implementacion del token desde acá.
+	if errToken != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(errToken.Error()))
+		return
+	}
+
+	tokenJson, errJson := json.Marshal(userToken)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("token: "))
 	_, _ = w.Write(tokenJson)
+}
+
+func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	parts := strings.Split(path, "/")
+	email := parts[len(parts)-1]
+
+	err := dto.ValidateInputId(email)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
+	}
+
+	user, err := handler.Service.GetByEmail(email)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	userJson, errJson := json.Marshal(user)
+	if errJson != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(errJson.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(userJson)
 }

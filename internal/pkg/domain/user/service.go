@@ -5,13 +5,18 @@ import (
 	"context"
 )
 
+//go:generate mockery --name=StorageRepository --output=user --inpackage=true
 type StorageRepository interface {
 	GetAll() ([]User, error)
-	GetByID(id int) (User, error)
+	GetByID(id string) (User, error)
 	Add(ctx context.Context, user User) error
-	Delete(ctx context.Context, id int) error
-	Update(ctx context.Context, id int, userU User) error
+	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id string, userU User) error
 }
+
+// type Authentication interface {
+// 	TokenGenerator(id int, role string) (string, error)
+// }
 
 type Service struct {
 	Config            *configuration.Configuration

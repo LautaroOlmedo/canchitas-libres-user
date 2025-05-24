@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func (s *Service) GetByID(id int) (User, error) {
+func (s *Service) GetByID(id string) (User, error) {
 
 	var errIDNotFound = errors.New("ID not found")
 

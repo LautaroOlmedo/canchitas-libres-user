@@ -52,12 +52,12 @@ func ValidateUserCreateDto(firstName string, lastName string, DNI int, birthDate
 } //Con .TrimSpace() elimino los espacios en blanco iniciales y finales.
 // No hice ninguna validacion con el telefono porq no es obligatorio ponerlo. Pero algo se deberia hacer.
 
-func ValidateInputId(id int) error {
+func ValidateInputId(id string) error {
 
-	if id == 0 {
+	if strings.TrimSpace(id) == "" {
 		return ErrMissingParameter
 	}
-	if reflect.TypeOf(id) != reflect.TypeOf(1) {
+	if reflect.TypeOf(id) != reflect.TypeOf("") {
 		return ErrInvalidTypeVariable
 	}
 	return nil

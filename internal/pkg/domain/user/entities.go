@@ -9,13 +9,12 @@ import (
 
 type User struct {
 	Person   *domain.Person //`json:"person" db:"person"`
-	Id       int            `json:"id" db:"user_id"`
+	Id       string         `json:"id" db:"user_id"`
 	Email    string         `json:"email" db:"email"`
 	Password string         `json:"password" db:"password"`
 	Active   bool           `json:"active" db:"active"`
 	Role     string         `json:"role" db:"role"`
 	Phone    string         `json:"phone" db:"phone"`
-	//Phone    sql.NullString `json:"phone"` Esto para trabajar con string que puedan ser nulos. De momento hice que en la base de datos sea obligatorio el phone
 }
 
 var (

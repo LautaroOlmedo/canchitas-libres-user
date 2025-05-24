@@ -8,16 +8,6 @@ import (
 	"time"
 )
 
-// type UserInput struct {
-// 	FirstName string    `json:"firstname"`
-// 	LastName  string    `json:"lastname"`
-// 	DNI       int       `json:"dni"`
-// 	BirthDate time.Time `json:"birthdate"`
-// 	Email     string    `json:"email"`
-// 	Password  string    `json:"password"`
-// 	Role      string    `json:"role"`
-// } //Esta struct es necesaria? Creo que la hice para no crear un user sin validar todo, pero no hay problema en crearlo mientras no lo mandemos a la base de datos.
-
 var (
 	ErrMissingParameter      = errors.New("missing parameter")
 	ErrRoleInvalid           = errors.New("role doesnt exist")

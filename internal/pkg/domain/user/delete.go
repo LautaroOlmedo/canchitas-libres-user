@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *Service) Delete(id int) error {
+func (s *Service) Delete(id string) error {
 	userArray, err := s.StorageRepository.GetAll()
 	if err != nil {
 		return err
@@ -15,5 +15,5 @@ func (s *Service) Delete(id int) error {
 			return s.StorageRepository.Delete(context.Background(), id)
 		}
 	}
-	return fmt.Errorf("element with ID %d not found", id)
+	return fmt.Errorf("element with ID %s not found", id)
 }
