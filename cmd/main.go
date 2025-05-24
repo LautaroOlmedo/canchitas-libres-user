@@ -6,6 +6,7 @@ import (
 	domain "canchitas-libres-user/internal/pkg/domain/user"
 	"canchitas-libres-user/internal/pkg/infrastructure/respository/storage"
 	"canchitas-libres-user/internal/pkg/infrastructure/web"
+
 	"context"
 	"fmt"
 )
@@ -15,6 +16,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// //Authentication Method
+	// jwtToken := authservice.Jwt{
+	// 	SecretKey:     "CodigoSecreto",
+	// 	TokenDuration: time.Hour * 24 * 30,
+	// } //Esto esta bien aca? Necesariamente tiene que haber uns struct para implementar la interface?
 
 	//database connection
 	database, err := database2.NewDBConnection(context.Background(), config)
