@@ -27,16 +27,6 @@ type LoginDto struct {
 	Password string `json:"password"`
 }
 
-// type UserDtoResponse struct {
-// 	FirstName string `json:"firstname"`
-// 	LastName  string `json:"lastname"`
-// 	DNI       int    `json:"dni"`
-// 	BirthDate string `json:"birthdate"`
-// 	Id        int    `json:"id"`
-// 	Email     string `json:"email"`
-// 	Role      string `json:"role"`
-// } // En este struct deberia ir solo lo que queremos mostrar a la hora de mostrar un user. No lo implemente.
-
 func ValidateUserCreateDto(firstName string, lastName string, DNI int, birthDate string, email string, password string, role string) error {
 
 	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" || strings.TrimSpace(role) == "" ||

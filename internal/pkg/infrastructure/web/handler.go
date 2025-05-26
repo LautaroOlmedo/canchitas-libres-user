@@ -78,6 +78,7 @@ func (handler *Handler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 
 	usersJSON, jsonerr := json.Marshal(users) //Lo transforma en codigo legible para json
 	if jsonerr != nil {
+		fmt.Println("error en el marshal de user get all")
 		return //retornar un error
 	}
 
@@ -93,11 +94,6 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/") // Toma todo lo que este en el path despues del primer / --> user/:id
 	parts := strings.Split(path, "/")           // Arma un slice con los elementos utilizando / como separador --> ["user", "9858"]
 	id := parts[len(parts)-1]                   // Ultimo elemento del slice --> ultimo elemento del path
-	// id, err := strconv.Atoi(idString)           // Convierto el string en un int
-	// if err != nil {
-	// 	fmt.Println("error al convertir el id en un int")
-	// 	return
-	// }
 
 	err := dto.ValidateInputId(id)
 	if err != nil {
@@ -168,11 +164,6 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
 	parts := strings.Split(path, "/")
 	id := parts[len(parts)-1]
-	// id, err := strconv.Atoi(idString)
-	// if err != nil {
-	// 	fmt.Println("error al convertir el id en un int")
-	// 	return
-	// }
 
 	err := dto.ValidateInputId(id)
 	if err != nil {
