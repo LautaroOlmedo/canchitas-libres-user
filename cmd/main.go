@@ -17,12 +17,6 @@ func main() {
 		panic(err)
 	}
 
-	// //Authentication Method
-	// jwtToken := authservice.Jwt{
-	// 	SecretKey:     "CodigoSecreto",
-	// 	TokenDuration: time.Hour * 24 * 30,
-	// } //Esto esta bien aca? Necesariamente tiene que haber uns struct para implementar la interface?
-
 	//database connection
 	database, err := database2.NewDBConnection(context.Background(), config)
 	if err != nil {

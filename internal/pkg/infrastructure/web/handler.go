@@ -2,7 +2,6 @@ package web
 
 import (
 	domain "canchitas-libres-user/internal/pkg/domain/user"
-	authservice "canchitas-libres-user/internal/pkg/infrastructure/authService"
 	"canchitas-libres-user/internal/pkg/infrastructure/web/dto"
 	"canchitas-libres-user/internal/pkg/infrastructure/web/mappers"
 	"encoding/json"
@@ -273,22 +272,21 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	} // El caso de uso devuelve directamente el user y desde el handler me ocupo de llamar a la funcion que genera el token JWT.
 
-	userToken, errToken := authservice.TokenGenerator(userLogin.Id, userLogin.Role) //Directamente llamo a la implementacion del token desde acá.
-	if errToken != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(errToken.Error()))
-		return
-	}
+	// userToken, errToken := authservice.TokenGenerator(userLogin.Id, userLogin.Role) //Directamente llamo a la implementacion del token desde acá.
+	// if errToken != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	w.Write([]byte(errToken.Error()))
+	// 	return
+	// }
 
-	tokenJson, errJson := json.Marshal(userToken)
+	userJson, errJson := json.Marshal(userLogin)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("token: "))
-	_, _ = w.Write(tokenJson)
+	_, _ = w.Write(userJson)
 }
 
 func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
