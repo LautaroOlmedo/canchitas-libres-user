@@ -75,7 +75,18 @@ func (handler *Handler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	usersJSON, jsonerr := json.Marshal(users) //Lo transforma en codigo legible para json
+	usersDto := make([]dto.UserDtoResponse, len(users))
+
+	for i := range users {
+		usersDto[i], err = mappers.ToDtoUserResponse(users[i])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+	}
+
+	usersJSON, jsonerr := json.Marshal(usersDto) //Lo transforma en codigo legible para json
 	if jsonerr != nil {
 		fmt.Println("error en el marshal de user get all")
 		return //retornar un error
@@ -107,8 +118,15 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userDto, err := mappers.ToDtoUserResponse(user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
 	//Respuesta
-	userJson, errJson := json.Marshal(user)
+	userJson, errJson := json.Marshal(userDto)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
@@ -156,7 +174,6 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("user was created"))
 }
 
 func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +226,6 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("user was updated"))
 }
 
 func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +254,6 @@ func (handler *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("user was eliminated"))
 }
 
 func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -279,7 +294,14 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	userJson, errJson := json.Marshal(userLogin)
+	userDto, err := mappers.ToDtoUserResponse(userLogin)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	userJson, errJson := json.Marshal(userDto)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
@@ -309,7 +331,14 @@ func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userJson, errJson := json.Marshal(user)
+	userDto, err := mappers.ToDtoUserResponse(user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	userJson, errJson := json.Marshal(userDto)
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
