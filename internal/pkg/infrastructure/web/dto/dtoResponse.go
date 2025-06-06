@@ -9,7 +9,7 @@ type UserDtoResponse struct {
 	Firstname string    `json:"firstname"`
 	Lastname  string    `json:"lastname"`
 	DNI       int       `json:"DNI"`
-	Birthdate time.Time `json:"birthday"`
+	Birthdate time.Time `json:"birthdate"`
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
 	Active    bool      `json:"active"`
