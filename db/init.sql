@@ -2,6 +2,7 @@
 -- SELECT 'CREATE DATABASE userDB'
 --    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'userDB')\gexec
 
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- Crear la tabla persons
 CREATE TABLE persons (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
