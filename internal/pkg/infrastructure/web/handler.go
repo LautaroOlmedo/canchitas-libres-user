@@ -20,6 +20,8 @@ type Service interface {
 	Update(id string, user domain.User) error
 	Login(email string, password string) (domain.User, error)
 	GetByEmail(email string) (domain.User, error)
+	Ban(idUser string) error
+	ChangeRole(id string, newRole string) error
 }
 type Handler struct {
 	Service Service
@@ -32,11 +34,13 @@ func NewHandler(service Service) *Handler {
 }
 
 var (
-	getAllRe  = regexp.MustCompile(`^\/user\/?$`)
-	getOneRe  = regexp.MustCompile(`^\/user\/([a-fA-F0-9-]{36})$`)
-	createRe  = regexp.MustCompile(`^\/user\/?$`)
-	loginPath = regexp.MustCompile(`^\/user\/login$`)
-	getByEm   = regexp.MustCompile(`^\/user\/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})$`)
+	getAllRe     = regexp.MustCompile(`^\/user\/?$`)
+	getOneRe     = regexp.MustCompile(`^\/user\/([a-fA-F0-9-]{36})$`)
+	createRe     = regexp.MustCompile(`^\/user\/?$`)
+	loginPath    = regexp.MustCompile(`^\/user\/login$`)
+	getByEm      = regexp.MustCompile(`^\/user\/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})$`)
+	banUserRe    = regexp.MustCompile(`^\/user\/ban\/([a-fA-F0-9\-]{36})$`)
+	changeRoleRe = regexp.MustCompile(`^\/user\/changeRole\/([a-fA-F0-9\-]{36})$`)
 )
 
 func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +67,12 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == http.MethodGet && getByEm.MatchString(r.URL.Path):
 		handler.GetUserByEmail(w, r)
+	case r.Method == http.MethodPatch && banUserRe.MatchString(r.URL.Path):
+		handler.BanUser(w, r)
+		return
+	case r.Method == http.MethodPatch && changeRoleRe.MatchString(r.URL.Path):
+		handler.ChangeRoleUser(w, r)
+		return
 	default:
 		http.NotFound(w, r)
 		return
@@ -346,4 +356,67 @@ func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(userJson)
+}
+
+func (handler *Handler) BanUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	parts := strings.Split(path, "/")
+	id := parts[len(parts)-1]
+
+	err := dto.ValidateInputId(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
+	}
+
+	err = handler.Service.Ban(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		fmt.Println(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (handler *Handler) ChangeRoleUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	path := strings.TrimPrefix(r.URL.Path, "/")
+	parts := strings.Split(path, "/")
+	id := parts[len(parts)-1]
+
+	err := dto.ValidateInputId(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println(err)
+	}
+
+	userDto := dto.UserDto{}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = json.Unmarshal(body, &userDto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = handler.Service.ChangeRole(id, userDto.Role)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		fmt.Println(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

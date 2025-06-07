@@ -12,6 +12,7 @@ type StorageRepository interface {
 	Add(ctx context.Context, user User) error
 	Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, id string, userU User) error
+	UpdateActive(ctx context.Context, id string, active bool) error
 }
 
 // type Authentication interface {

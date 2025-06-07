@@ -228,3 +228,23 @@ func (p *Postgres) Update(ctx context.Context, id string, userU domain.User) err
 
 	return nil
 }
+
+func (p *Postgres) UpdateActive(ctx context.Context, id string, active bool) error {
+	tx, err := p.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, queryUpdateActive, active, id)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update user firstname: %w", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
