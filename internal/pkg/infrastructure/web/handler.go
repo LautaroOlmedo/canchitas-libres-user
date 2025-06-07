@@ -83,6 +83,7 @@ func (handler *Handler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 	users, err := handler.Service.GetAll()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(err)
 	}
 
 	usersDto := make([]dto.UserDtoResponse, len(users))
@@ -92,6 +93,7 @@ func (handler *Handler) GetAllUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
+			fmt.Println(err)
 			return
 		}
 	}
@@ -125,6 +127,7 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -132,6 +135,7 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -140,6 +144,7 @@ func (handler *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
+		fmt.Println(errJson)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -156,12 +161,14 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 	}
 
 	err = json.Unmarshal(body, &userDto)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 	}
 	fmt.Println(userDto)
 
@@ -169,18 +176,21 @@ func (handler *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 	userDomain, err := mappers.ToDomainUser(userDto)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 	err = handler.Service.Add(userDomain)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -204,6 +214,7 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -211,6 +222,7 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -218,6 +230,7 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err == dto.ErrInvalidTypeVariable {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -225,6 +238,7 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -232,6 +246,7 @@ func (handler *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -275,18 +290,21 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 	}
 
 	err = json.Unmarshal(body, &dtoLogin)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 	}
 
 	err = dto.ValidateLogin(dtoLogin.Email, dtoLogin.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -294,6 +312,7 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	} // El caso de uso devuelve directamente el user y desde el handler me ocupo de llamar a la funcion que genera el token JWT.
 
@@ -308,6 +327,7 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -315,6 +335,7 @@ func (handler *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
+		fmt.Println(errJson)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -338,6 +359,7 @@ func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -345,6 +367,7 @@ func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -352,6 +375,7 @@ func (handler *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	if errJson != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(errJson.Error()))
+		fmt.Println(errJson)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -400,6 +424,7 @@ func (handler *Handler) ChangeRoleUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
@@ -407,6 +432,7 @@ func (handler *Handler) ChangeRoleUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
+		fmt.Println(err)
 		return
 	}
 
