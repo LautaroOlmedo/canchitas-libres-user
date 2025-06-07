@@ -29,7 +29,7 @@ type LoginDto struct {
 
 func ValidateUserCreateDto(firstName string, lastName string, DNI int, birthDate string, email string, password string, role string) error {
 
-	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" || strings.TrimSpace(role) == "" ||
+	if strings.TrimSpace(email) == "" || strings.TrimSpace(password) == "" ||
 		strings.TrimSpace(firstName) == "" || strings.TrimSpace(lastName) == "" || strings.TrimSpace(birthDate) == "" || DNI == 0 {
 		return ErrMissingParameter
 	}

@@ -17,8 +17,8 @@ var (
 
 func (s *Service) Add(user User) error {
 
-	r := strings.ToLower(user.Role)
-	if r != "admin" && r != "user" {
+	user.Role = strings.ToLower(user.Role)
+	if user.Role != "admin" && user.Role != "user" && user.Role != "" {
 		return ErrRoleInvalid
 	}
 
@@ -34,6 +34,10 @@ func (s *Service) Add(user User) error {
 	fmt.Println(userYears)
 	if userYears < 18 || userYears > 130 {
 		return ErrMinAge
+	}
+
+	if user.Role == "" {
+		user.Role = "user"
 	}
 
 	return s.StorageRepository.Add(context.Background(), user)
